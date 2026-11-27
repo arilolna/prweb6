@@ -1,0 +1,58 @@
+@host = http://localhost:3000
+
+### Тест 1 (валідний): пробіли в title мають бути обрізані, 201 + X-Response-Time
+POST {{host}}/medicines
+Content-Type: application/json
+
+{
+  "title": "   Парацетамол   ",
+  "price": 45.50,
+  "dosageMg": 500,
+  "isPrescriptionRequired": false,
+  "expirationDate": "2028-05-31"
+}
+
+### Тест 2: заборонене поле -> "property hackerField should not exist"
+POST {{host}}/medicines
+Content-Type: application/json
+
+{
+  "title": "Аспірин",
+  "price": 30,
+  "dosageMg": 100,
+  "isPrescriptionRequired": false,
+  "expirationDate": "2028-01-01",
+  "hackerField": "malicious"
+}
+
+### Тест 3: некоректні типи (рядок замість числа, від'ємна доза, не булеве, погана дата)
+POST {{host}}/medicines
+Content-Type: application/json
+
+{
+  "title": "Амоксицилін",
+  "price": "дорого",
+  "dosageMg": -250,
+  "isPrescriptionRequired": "yes",
+  "expirationDate": "не дата"
+}
+
+### Тест 4: Query-трансформація (limit "5" -> число 5)
+GET {{host}}/medicines?limit=5
+
+### Тест 4b: некоректний limit -> 400
+GET {{host}}/medicines?limit=abc
+
+### Додатково: PATCH (всі поля опційні)
+PATCH {{host}}/medicines/1
+Content-Type: application/json
+
+{
+  "price": 49.90
+}
+
+### Додатково: неіснуючий id -> 404 через GlobalExceptionFilter
+GET {{host}}/medicines/999
+
+### Додатково: нечисловий id -> 400 від ParseIntPipe
+GET {{host}}/medicines/abc
